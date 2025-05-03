@@ -73,16 +73,24 @@ if uploaded_file:
 
         if graph_type == "Ligne":
             fig = px.line(df_grouped, x=x_axis, y=value_col, color=color, markers=True,
-                          title="Consommation énergétique - Ligne")
+                        title="Consommation énergétique - Ligne")
+            fig.update_yaxes(title="Consommation (kWh)")
+
         elif graph_type == "Barres":
             fig = px.bar(df_grouped, x=x_axis, y=value_col, color=color,
-                         title="Consommation énergétique - Barres")
+                        title="Consommation énergétique")
+            fig.update_yaxes(title="Consommation (kWh)")
+
         elif graph_type == "Boîte":
             fig = px.box(df_grouped, x=color if color else x_axis, y=value_col,
-                         title="Distribution consommation - Boîte")
+                        title="Distribution consommation - Boîte")
+            fig.update_yaxes(title="Consommation (kWh)")
+
         elif graph_type == "Violon":
             fig = px.violin(df_grouped, x=color if color else x_axis, y=value_col, box=True, points="all",
                             title="Distribution consommation - Violon")
+            fig.update_yaxes(title="Consommation (kWh)")
+
         elif graph_type == "Camembert":
             pie_df = df_grouped.copy()
             if color:
@@ -91,23 +99,32 @@ if uploaded_file:
             else:
                 pie_df = pie_df.groupby(x_axis)[value_col].sum().reset_index()
                 fig = px.pie(pie_df, names=x_axis, values=value_col, title="Répartition par période")
+
         elif graph_type == "Bulles":
             fig = px.scatter(df_grouped, x=x_axis, y=value_col, size=value_col, color=color,
-                             title="Nuage de points - Bulles")
+                            title="Nuage de points - Bulles")
+            fig.update_yaxes(title="Consommation (kWh)")
 
         st.plotly_chart(fig, use_container_width=True)
+
 
         # ----- KPI ET DÉRIVES -----
         st.subheader("📉 Suivi des KPI et dérives")
         cible = st.number_input("🎯 Objectif de consommation", min_value=0.0, value=100.0)
         seuil_pct = st.slider("⚠️ Seuil de dérive (%)", 1, 100, 20)
 
+        # Calcul de l'écart en pourcentage
         df_grouped["Écart (%)"] = ((df_grouped[value_col] - cible) / cible * 100).round(2)
-        df_grouped["Dérive"] = df_grouped["Écart (%)"].apply(lambda x: "Oui" if abs(x) > seuil_pct else "Non")
+
+        # Identifier les dérives uniquement pour les dépassements positifs
+        df_grouped["Dérive"] = df_grouped["Écart (%)"].apply(lambda x: "Oui" if x > seuil_pct else "Non")
+
         st.dataframe(df_grouped)
 
+        # Filtrage des dérives détectées (uniquement les dépassements)
         derives_detectees = df_grouped[df_grouped["Dérive"] == "Oui"]
         st.write(f"🔎 Dérives détectées : {len(derives_detectees)}")
+
 
         # ----- SUIVI / COMMENTAIRES DES DÉRIVES -----
         st.subheader("🛠 Traitement des dérives")
