@@ -10,7 +10,7 @@ import datetime
 
 # ----- CONFIGURATION GÉNÉRALE -----
 st.set_page_config(page_title="Plateforme EMS", layout="wide")
-st.title("🔌 Plateforme EMS – Energy Management System")
+st.title("🔌 Page d'analyses – Energy Management System")
 
 # ----- CHARGEMENT DES DONNÉES -----
 uploaded_file = st.file_uploader("📂 Importer un fichier CSV ou Excel", type=["csv", "xlsx"])
@@ -70,42 +70,53 @@ if uploaded_file:
         graph_type = st.selectbox("🎨 Type de graphique", ["Ligne", "Barres", "Boîte", "Violon", "Camembert", "Bulles"])
         x_axis = "Période" if period != "Aucune" else date_col
         color = site_col if site_col != "Aucun" else None
+        color_sequence = None if site_col != "Aucun" else ["mediumseagreen", "palegreen"]
+        titre_base = f"{value_col} ({period})" if period != "Aucune" else f"{value_col}"
 
         if graph_type == "Ligne":
-            fig = px.line(df_grouped, x=x_axis, y=value_col, color=color, markers=True,
-                        title="Consommation énergétique - Ligne")
+            fig = px.line(df_grouped, x=x_axis, y=value_col, color=color, color_discrete_sequence=color_sequence,
+                        markers=True, title=f"Consommation énergétique - {titre_base}")
             fig.update_yaxes(title="Consommation (kWh)")
 
         elif graph_type == "Barres":
-            fig = px.bar(df_grouped, x=x_axis, y=value_col, color=color,
-                        title="Consommation énergétique")
+            fig = px.bar(df_grouped, x=x_axis, y=value_col, color=color, color_discrete_sequence=color_sequence,
+                        title=f"Consommation énergétique - {titre_base}")
             fig.update_yaxes(title="Consommation (kWh)")
 
         elif graph_type == "Boîte":
             fig = px.box(df_grouped, x=color if color else x_axis, y=value_col,
-                        title="Distribution consommation - Boîte")
+                        color=color if color else None, color_discrete_sequence=color_sequence,
+                        title=f"Distribution consommation - {titre_base}")
             fig.update_yaxes(title="Consommation (kWh)")
 
         elif graph_type == "Violon":
-            fig = px.violin(df_grouped, x=color if color else x_axis, y=value_col, box=True, points="all",
-                            title="Distribution consommation - Violon")
+            fig = px.violin(df_grouped, x=color if color else x_axis, y=value_col,
+                            box=True, points="all", color=color if color else None,
+                            color_discrete_sequence=color_sequence,
+                            title=f"Distribution consommation - {titre_base}")
             fig.update_yaxes(title="Consommation (kWh)")
 
         elif graph_type == "Camembert":
             pie_df = df_grouped.copy()
             if color:
                 pie_df = pie_df.groupby(color)[value_col].sum().reset_index()
-                fig = px.pie(pie_df, names=color, values=value_col, title="Répartition par site")
+                fig = px.pie(pie_df, names=color, values=value_col,
+                            color_discrete_sequence=color_sequence,
+                            title=f"Répartition par {color} - {value_col} ({period})")
             else:
                 pie_df = pie_df.groupby(x_axis)[value_col].sum().reset_index()
-                fig = px.pie(pie_df, names=x_axis, values=value_col, title="Répartition par période")
+                fig = px.pie(pie_df, names=x_axis, values=value_col,
+                            color_discrete_sequence=color_sequence,
+                            title=f"Répartition par {x_axis} - {value_col} ({period})")
 
         elif graph_type == "Bulles":
-            fig = px.scatter(df_grouped, x=x_axis, y=value_col, size=value_col, color=color,
-                            title="Nuage de points - Bulles")
+            fig = px.scatter(df_grouped, x=x_axis, y=value_col, size=value_col,
+                            color=color, color_discrete_sequence=color_sequence,
+                            title=f"Nuage de points - {titre_base}")
             fig.update_yaxes(title="Consommation (kWh)")
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
         # ----- KPI ET DÉRIVES -----
