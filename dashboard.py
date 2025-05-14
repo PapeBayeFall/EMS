@@ -22,7 +22,7 @@ def charger_donnees():
     return df
 
 # -------------------- Titre et rechargement --------------------
-st.title("📊 Suivi des Activités & Échéances")
+st.title("Suivi des Activités & Échéances des Rendus")
 
 if st.button("🔄 Recharger les données"):
     st.cache_data.clear()
@@ -32,13 +32,13 @@ df = charger_donnees()
 # -------------------- KPI --------------------
 st.subheader("📌 Indicateurs clés")
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("📦 Total", len(df))
-col2.metric("🟩 Terminées", df['Terminée'].sum())
-col3.metric("⏳ En cours", df['En cours'].sum())
-col4.metric("🕓 En retard", df['En retard'].sum())
+col1.metric("📦 Total des Activité à réaliser", len(df))
+col2.metric("🟩 Activtés Terminées", df['Terminée'].sum())
+col3.metric("⏳ Activité En cours", df['En cours'].sum())
+col4.metric("🕓 Activité En retard", df['En retard'].sum())
 
 # -------------------- Défilement automatique --------------------
-st.subheader("🔄 Activités défilantes par état")
+st.subheader("🔄 Activités")
 categories = {
     "🟩 Terminées": df[df['Terminée']]['Activité'].tolist(),
     "⏳ En cours": df[df['En cours']]['Activité'].tolist(),
@@ -105,4 +105,4 @@ if "R (Responsable)" in df.columns:
 
 # -------------------- TABLEAU COMPLET --------------------
 st.subheader("📋 Tableau complet des tâches")
-st.dataframe(df[['Activité', 'R (Responsable)', 'État d’avancement', 'Échéance']])
+st.dataframe(df[['Activité', 'R (Responsable)', 'C (Contributeurs)', 'État d’avancement', 'Commentaires', 'Échéance']])
