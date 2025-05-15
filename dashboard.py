@@ -4,12 +4,11 @@ import plotly.express as px
 from datetime import datetime
 import time
 
-
 # -------------------- CONFIGURATION --------------------
 st.set_page_config(page_title="KPI Projet", layout="wide")
+
 # URL publique de ta Google Sheet
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKgao_dLrrNJV1qPYv0nW7UTkcJLVmIpDmr6ZDSBVjjyihqWdNxOpHT2wVvsbJDOOqmyNBDNPmSVT7/pub?gid=0&single=true&output=csv"
-
 
 @st.cache_data(ttl=300)
 def charger_donnees():
@@ -38,6 +37,10 @@ col3.metric("⏳ Activité En cours", df['En cours'].sum())
 col4.metric("🕓 Activité En retard", df['En retard'].sum())
 
 # -------------------- Défilement automatique --------------------
+# Ici il doit y'avoir trois cadres en utilisant les col de streamlit avec une mise page optimale
+# destinés pour chaque indicateur : Terminée, En cours, En retard
+# L'activité de chaque des indicateurs doivent défiler mot par mot
+# avec un sleep de 1/2 seconde par mot suivi des commentaires sur fichiers
 st.subheader("🔄 Activités")
 categories = {
     "🟩 Terminées": df[df['Terminée']]['Activité'].tolist(),
@@ -58,6 +61,8 @@ for i in range(1):  # nombre de cycles de défilement
             time.sleep(1.2)
 
 # -------------------- ALERTES --------------------
+# Ici il doit y'avoir aussi une alerte pour chaque responsable
+# de son activité en retard ou imminente
 st.subheader("🚨 Tâches en retard ou imminentes")
 df_alertes = df[~df['Terminée'] & df['Échéance'].notna()].copy()
 df_alertes['Jours restants'] = (df_alertes['Échéance'] - pd.Timestamp.now()).dt.days
@@ -76,6 +81,7 @@ st.subheader("📈 Suivi visuel des échéances et avancement")
 g1, g2 = st.columns(2)
 
 # Graphe 1 : Répartition des tâches par état
+# Répartition des tâches selon les différents états d'avancement : Terminée, En cours, etc.
 with g1:
     fig1 = px.histogram(df, x="État d’avancement", color="État d’avancement",
                         title="Répartition des tâches par état d’avancement",
@@ -104,5 +110,8 @@ if "R (Responsable)" in df.columns:
     st.plotly_chart(fig3, use_container_width=True)
 
 # -------------------- TABLEAU COMPLET --------------------
+# Ici l'utilisateur doit pouvoir apporter des modifications sur le tableau complet
+# Il doit pouvoir ajouter une nouvelle activité, modifier une activité existante
+# ou supprimer une activité et les modifications doivent être enregistrées dans la Google Sheet
 st.subheader("📋 Tableau complet des tâches")
 st.dataframe(df[['Activité', 'R (Responsable)', 'C (Contributeurs)', 'État d’avancement', 'Commentaires', 'Échéance']])
